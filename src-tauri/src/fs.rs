@@ -12,6 +12,26 @@ use std::time::UNIX_EPOCH;
 use ide_ipc::{IpcResult, IpcError};
 use tauri::command;
 
+/// 尝试检测并解码文本文件
+fn read_text_file(path: &Path) -> Result<(String, String), IpcError> {
+    let bytes = fs::read(path).map_err(|e| IpcError::Io(e.to_string()))?;
+
+    // 尝试 UTF-8
+    if let Ok(text) = String::from_utf8(bytes.clone()) {
+        return Ok((text, "utf-8".into()));
+    }
+
+    // 尝试 GBK（Windows 中文常用编码）
+    let (text, _, had_errors) = encoding_rs::GBK.decode(&bytes);
+    if !had_errors {
+        return Ok((text.into(), "gbk".into()));
+    }
+
+    // 回退：UTF-8 lossy 转换
+    let text = String::from_utf8_lossy(&bytes).to_string();
+    Ok((text, "utf-8-lossy".into()))
+}
+
 /// 文件条目（单个文件或目录）
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -92,20 +112,33 @@ pub fn read_directory(path: String) -> IpcResult<Vec<FileEntry>> {
     Ok(entries)
 }
 
-/// 读取文本文件内容
+/// 大文件阈值（5MB）
+const LARGE_FILE_THRESHOLD: u64 = 5 * 1024 * 1024;
+
+/// 读取文本文件内容（自动检测编码：UTF-8 → GBK → lossy）
 #[command]
 pub fn read_file_text(path: String) -> IpcResult<FileContent> {
     let p = Path::new(&path);
     if !p.exists() {
         return Err(IpcError::NotFound(format!("file not found: {}", path)));
     }
-    let content = fs::read_to_string(p)
-        .map_err(|e| IpcError::Io(format!("failed to read file (may not be text): {}", e)))?;
-    let size = fs::metadata(p).map(|m| m.len()).unwrap_or(0);
+
+    // 大文件检查
+    if let Ok(meta) = p.metadata() {
+        if meta.len() > LARGE_FILE_THRESHOLD {
+            return Err(IpcError::Generic(format!(
+                "file too large ({} MB). Max: 5 MB",
+                meta.len() / 1024 / 1024
+            )));
+        }
+    }
+
+    let (content, encoding) = read_text_file(p)?;
+    let size = p.metadata().map(|m| m.len()).unwrap_or(0);
 
     Ok(FileContent {
         content,
-        encoding: "utf-8".into(),
+        encoding,
         size,
     })
 }

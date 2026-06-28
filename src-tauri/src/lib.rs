@@ -8,6 +8,7 @@ mod commands;
 mod fs;
 mod project;
 mod settings;
+mod terminal;
 mod watcher;
 
 use tracing_subscriber::{fmt, prelude::*, EnvFilter};
@@ -49,6 +50,10 @@ pub fn run() {
             // Sprint 1-4：设置命令
             settings::get_settings,
             settings::save_settings,
+            // Sprint 1-5：终端命令
+            terminal::terminal_write,
+            terminal::terminal_start,
+            terminal::terminal_stop,
         ])
         .setup(|app| {
             // 确保 app_data_dir 存在
