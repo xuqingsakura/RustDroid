@@ -1,5 +1,7 @@
-//! 项目管理（Sprint 1-2 Task 3）
-//! 桩文件 - 实现将在 Task 3 中完成
+//! 项目管理
+//!
+//! 处理项目打开、最近项目列表持久化。
+//! 最近项目数据存储在 app_data_dir/recent_projects.json。
 
 #![forbid(unsafe_code)]
 
@@ -90,4 +92,42 @@ fn recent_file_path(app: &AppHandle) -> PathBuf {
     app.path().app_data_dir()
         .unwrap_or_else(|_| PathBuf::from("."))
         .join("recent_projects.json")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_recent_project_serialization() {
+        let project = RecentProject {
+            name: "MyApp".into(),
+            path: "/projects/MyApp".into(),
+            last_opened: "2026-01-01T00:00:00Z".into(),
+        };
+        let json = serde_json::to_string(&project).unwrap();
+        assert!(json.contains("\"lastOpened\"")); // camelCase 序列化
+        assert!(json.contains("\"MyApp\""));       // 值正确
+    }
+
+    #[test]
+    fn test_android_project_detection() {
+        let dir = tempfile::tempdir().unwrap();
+        // 没有 gradle 文件，不是 Android 项目
+        let info = open_project(dir.path().to_string_lossy().to_string()).unwrap();
+        assert!(!info.is_android_project);
+
+        // 添加 build.gradle.kts
+        std::fs::write(dir.path().join("build.gradle.kts"), "").unwrap();
+        let info = open_project(dir.path().to_string_lossy().to_string()).unwrap();
+        assert!(info.is_android_project);
+    }
+
+    #[test]
+    fn test_project_info_fields() {
+        let dir = tempfile::tempdir().unwrap();
+        let info = open_project(dir.path().to_string_lossy().to_string()).unwrap();
+        assert_eq!(info.name, dir.path().file_name().unwrap().to_str().unwrap());
+        assert_eq!(info.path, dir.path().to_string_lossy().to_string());
+    }
 }
