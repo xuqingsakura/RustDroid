@@ -6,6 +6,7 @@ resolver = "2"
 members = [
     "crates/ide-core",
     "crates/ide-ipc",
+    "crates/ide-editor",
     "src-tauri",
 ]
 
