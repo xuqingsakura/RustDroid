@@ -51,54 +51,234 @@ body {
   background: var(--bg);
 }
 
-.app-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.75rem 1.5rem;
-  border-bottom: 1px solid var(--rule);
-  background: var(--bg2);
-}
-
-.app-header h1 {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--orange);
-}
-
-.app-header .version {
-  font-size: 0.8rem;
-  color: var(--muted);
-  font-family: 'JetBrains Mono', 'Consolas', monospace;
-}
-
-.app-main {
-  flex: 1;
+/* ===== 欢迎页 ===== */
+.welcome-main {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  height: 100vh;
+  gap: 2rem;
+  padding: 2rem;
 }
 
-.hero-text {
-  font-size: 1.3rem;
-  font-weight: 500;
-  color: var(--accent);
+.welcome-hero {
+  text-align: center;
 }
 
-.hero-sub {
-  font-size: 0.85rem;
+.welcome-title {
+  font-size: 2.5rem;
+  font-weight: 300;
+  letter-spacing: -0.03em;
+  color: var(--orange);
+}
+
+.welcome-sub {
+  font-size: 0.95rem;
   color: var(--muted2);
+  margin-top: 0.25rem;
+}
+
+.welcome-version {
+  font-size: 0.75rem;
+  color: var(--muted);
   font-family: 'JetBrains Mono', 'Consolas', monospace;
 }
 
-.app-footer {
+.welcome-actions {
   display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.welcome-btn {
+  display: flex;
+  align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem 1.5rem;
-  border-top: 1px solid var(--rule);
+  padding: 0.75rem 1.5rem;
   background: var(--bg2);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  color: var(--ink);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.welcome-btn:hover:not(:disabled) {
+  background: var(--bg3);
+  border-color: var(--accent);
+}
+
+.welcome-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.recent-projects {
+  width: 100%;
+  max-width: 400px;
+}
+
+.recent-projects-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  margin-bottom: 0.5rem;
+}
+
+.recent-projects-list {
+  list-style: none;
+  padding: 0;
+}
+
+.recent-project-item {
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+
+.recent-project-item:hover {
+  background: var(--bg2);
+}
+
+.recent-project-name {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.recent-project-path {
   font-size: 0.75rem;
   color: var(--muted);
+  font-family: 'JetBrains Mono', 'Consolas', monospace;
+}
+
+/* ===== IDE 布局 ===== */
+.ide-layout {
+  display: grid;
+  grid-template-columns: 46px 260px 1fr;
+  grid-template-rows: 1fr auto;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.activity-bar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 0.5rem 0;
+  background: var(--bg2);
+  border-right: 1px solid var(--rule);
+  grid-row: 1 / -1;
+}
+
+.activity-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 1rem;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.activity-btn:hover:not(:disabled) {
+  background: var(--bg3);
+  color: var(--ink);
+}
+
+.activity-btn.active {
+  color: var(--accent);
+  border-left: 2px solid var(--accent);
+  border-radius: 0;
+}
+
+.activity-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.activity-spacer {
+  flex: 1;
+}
+
+.sidebar {
+  background: var(--bg);
+  border-right: 1px solid var(--rule);
+  overflow: hidden;
+}
+
+.editor-area {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.editor-tabs {
+  display: flex;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--rule);
+  min-height: 32px;
+}
+
+.editor-tab {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+  border-right: 1px solid var(--rule);
+  cursor: pointer;
+}
+
+.editor-tab.active {
+  background: var(--bg);
+  color: var(--ink);
+  border-bottom: 2px solid var(--accent);
+}
+
+.editor-content {
+  flex: 1;
+  overflow: auto;
+}
+
+.editor-placeholder {
+  padding: 1rem;
+  color: var(--muted);
+  font-family: 'JetBrains Mono', 'Consolas', monospace;
+  font-size: 0.85rem;
+}
+
+.status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0.75rem;
+  height: 24px;
+  background: var(--bg2);
+  border-top: 1px solid var(--rule);
+  font-size: 0.72rem;
+  color: var(--muted);
+  grid-column: 1 / -1;
+  gap: 1rem;
+}
+
+.status-bar span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
