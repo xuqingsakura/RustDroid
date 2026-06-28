@@ -1,13 +1,21 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "默认权限：Sprint 1-1 阶段所需的最小权限集",
+  "description": "默认权限：Sprint 1-2 阶段 — 文件系统操作 + 对话框",
   "windows": ["main"],
   "permissions": [
     "core:default",
     "core:app:allow-version",
     "core:app:allow-name",
     "fs:default",
-    "dialog:default"
+    "fs:allow-read",
+    "fs:allow-write",
+    "fs:allow-exists",
+    "fs:allow-mkdir",
+    "fs:allow-remove",
+    "fs:allow-rename",
+    "dialog:default",
+    "dialog:allow-open",
+    "dialog:allow-save"
   ]
 }

@@ -1,7 +1,7 @@
 //! Range 类型：文本区间，由起止位置定义
 
 use serde::{Deserialize, Serialize};
-use Position;
+use crate::Position;
 
 /// 文本区间 [start, end)
 ///

@@ -1,12 +1,16 @@
 //! RustDroid IDE 应用入口
 //!
-//! Sprint 1-1：注册 Tauri command 与 plugin，启动应用。
+//! Sprint 1-2：注册文件系统命令与项目管理命令。
 
 #![forbid(unsafe_code)]
 
 mod commands;
+mod fs;
+mod project;
+mod watcher;
 
 use tracing_subscriber::{fmt, prelude::*, EnvFilter};
+use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -26,8 +30,25 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             commands::app_info,
             commands::app_version,
+            // Sprint 1-2：文件系统命令
+            fs::read_directory,
+            fs::read_file_text,
+            fs::write_file_text,
+            fs::create_file,
+            fs::create_directory,
+            fs::delete_file,
+            fs::rename_file,
+            // Sprint 1-2：项目管理命令
+            project::open_project,
+            project::get_recent_projects,
+            project::add_recent_project,
         ])
-        .setup(|_app| {
+        .setup(|app| {
+            // 确保 app_data_dir 存在
+            if let Ok(data_dir) = app.path().app_data_dir() {
+                let _ = std::fs::create_dir_all(&data_dir);
+                tracing::info!("app data dir: {:?}", data_dir);
+            }
             tracing::info!("tauri app setup complete");
             Ok(())
         })

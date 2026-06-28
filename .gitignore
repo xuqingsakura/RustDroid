@@ -22,3 +22,10 @@ src-tauri/gen/schemas
 # Build
 *.log
 build/
+
+# docs/dev-docs
+dev-docs/
+docs/
+
+# superpowers
+.superpowers/

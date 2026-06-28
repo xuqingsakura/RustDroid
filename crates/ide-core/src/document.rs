@@ -3,7 +3,78 @@
 use serde::{Deserialize, Serialize};
 use std::sync::atomic::{AtomicU64, Ordering};
 
-use crate::{LanguageId, Uri};
+use crate::Uri;
+
+/// 语言标识符
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum LanguageId {
+    /// Java
+    Java,
+    /// Kotlin
+    Kotlin,
+    /// XML
+    Xml,
+    /// Gradle (Groovy DSL)
+    Gradle,
+    /// Gradle Kotlin DSL
+    GradleKts,
+    /// Rust
+    Rust,
+    /// JavaScript
+    JavaScript,
+    /// TypeScript
+    TypeScript,
+    /// JSON
+    Json,
+    /// Markdown
+    Markdown,
+    /// YAML
+    Yaml,
+    /// Shell/Bash
+    Shell,
+    /// 纯文本（未知/不支持的语言）
+    PlainText,
+}
+
+impl LanguageId {
+    /// 根据文件扩展名推断语言
+    pub fn from_extension(ext: &str) -> Self {
+        match ext.to_lowercase().as_str() {
+            "java" => LanguageId::Java,
+            "kt" | "kts" => LanguageId::Kotlin,
+            "xml" => LanguageId::Xml,
+            "gradle" => LanguageId::Gradle,
+            "rs" => LanguageId::Rust,
+            "js" | "jsx" => LanguageId::JavaScript,
+            "ts" | "tsx" => LanguageId::TypeScript,
+            "json" => LanguageId::Json,
+            "md" => LanguageId::Markdown,
+            "yaml" | "yml" => LanguageId::Yaml,
+            "sh" | "bash" | "zsh" => LanguageId::Shell,
+            _ => LanguageId::PlainText,
+        }
+    }
+}
+
+impl std::fmt::Display for LanguageId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            LanguageId::Java => write!(f, "Java"),
+            LanguageId::Kotlin => write!(f, "Kotlin"),
+            LanguageId::Xml => write!(f, "XML"),
+            LanguageId::Gradle => write!(f, "Gradle"),
+            LanguageId::GradleKts => write!(f, "Gradle Kotlin DSL"),
+            LanguageId::Rust => write!(f, "Rust"),
+            LanguageId::JavaScript => write!(f, "JavaScript"),
+            LanguageId::TypeScript => write!(f, "TypeScript"),
+            LanguageId::Json => write!(f, "JSON"),
+            LanguageId::Markdown => write!(f, "Markdown"),
+            LanguageId::Yaml => write!(f, "YAML"),
+            LanguageId::Shell => write!(f, "Shell"),
+            LanguageId::PlainText => write!(f, "Plain Text"),
+        }
+    }
+}
 
 /// 文档版本号（单调递增，每次修改自增）
 pub type Version = u32;
