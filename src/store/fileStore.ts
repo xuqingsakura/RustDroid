@@ -20,6 +20,16 @@ interface FileStoreState {
   /** 加载状态 */
   loading: boolean;
 
+  // Sprint 1-3: 编辑器相关
+  /** 文件内容缓存 (path → content) */
+  fileContents: Record<string, string>;
+  /** 当前激活的文件路径 */
+  activeFile: string | null;
+  /** 已修改但未保存的文件路径集合 */
+  dirtyFiles: Set<string>;
+  /** 加载文件内容中 */
+  loadingFile: boolean;
+
   // Actions
   setProjectPath: (path: string | null) => void;
   loadRootEntries: () => Promise<void>;
@@ -29,6 +39,14 @@ interface FileStoreState {
   addOpenFile: (path: string) => void;
   removeOpenFile: (path: string) => void;
   refreshRoot: () => Promise<void>;
+
+  // Sprint 1-3: 编辑器 actions
+  openFile: (path: string) => Promise<void>;
+  setActiveFile: (path: string | null) => void;
+  setFileContent: (path: string, content: string) => void;
+  setFileDirty: (path: string, dirty: boolean) => void;
+  closeFile: (path: string) => void;
+  saveFile: (path: string) => Promise<void>;
 }
 
 export const useFileStore = create<FileStoreState>((set, get) => ({
@@ -40,6 +58,10 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
   selectedFile: null,
   openFiles: [],
   loading: false,
+  fileContents: {},
+  activeFile: null,
+  dirtyFiles: new Set<string>(),
+  loadingFile: false,
 
   setProjectPath: (path) => {
     set({
@@ -52,6 +74,9 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
       expandedPaths: new Set<string>(),
       selectedFile: null,
       openFiles: [],
+      fileContents: {},
+      activeFile: null,
+      dirtyFiles: new Set<string>(),
     });
   },
 
@@ -91,7 +116,6 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
     } else {
       newExpanded.add(path);
       set({ expandedPaths: newExpanded });
-      // 惰性加载子目录（如未缓存）
       if (!dirCache[path]) {
         await get().loadDirectory(path);
       }
@@ -115,10 +139,106 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
 
   refreshRoot: async () => {
     await get().loadRootEntries();
-    // 同时刷新所有已展开的目录
     const { expandedPaths } = get();
     for (const dirPath of expandedPaths) {
       await get().loadDirectory(dirPath);
+    }
+  },
+
+  // Sprint 1-3: 编辑器 actions
+
+  openFile: async (path: string) => {
+    const { fileContents, openFiles } = get();
+
+    // 如果内容已缓存，直接打开
+    if (fileContents[path]) {
+      set((state) => ({
+        activeFile: path,
+        selectedFile: path,
+        openFiles: state.openFiles.includes(path)
+          ? state.openFiles
+          : [...state.openFiles, path],
+      }));
+      return;
+    }
+
+    set({ loadingFile: true });
+    try {
+      const result = await fsApi.readFileText(path);
+      set((state) => ({
+        fileContents: { ...state.fileContents, [path]: result.content },
+        activeFile: path,
+        selectedFile: path,
+        openFiles: state.openFiles.includes(path)
+          ? state.openFiles
+          : [...state.openFiles, path],
+        loadingFile: false,
+      }));
+    } catch (e) {
+      console.error('Failed to open file:', path, e);
+      set({ loadingFile: false });
+    }
+  },
+
+  setActiveFile: (path) => set({ activeFile: path }),
+
+  setFileContent: (path, content) => {
+    set((state) => ({
+      fileContents: { ...state.fileContents, [path]: content },
+      dirtyFiles: new Set(state.dirtyFiles).add(path),
+    }));
+  },
+
+  setFileDirty: (path, dirty) => {
+    set((state) => {
+      const newDirty = new Set(state.dirtyFiles);
+      if (dirty) {
+        newDirty.add(path);
+      } else {
+        newDirty.delete(path);
+      }
+      return { dirtyFiles: newDirty };
+    });
+  },
+
+  closeFile: (path) => {
+    set((state) => {
+      const newOpenFiles = state.openFiles.filter((f) => f !== path);
+      const newContents = { ...state.fileContents };
+      delete newContents[path];
+      const newDirty = new Set(state.dirtyFiles);
+      newDirty.delete(path);
+
+      // 如果关闭的是当前激活文件，切换到另一个
+      let newActive = state.activeFile;
+      if (state.activeFile === path) {
+        newActive = newOpenFiles.length > 0
+          ? newOpenFiles[newOpenFiles.length - 1]
+          : null;
+      }
+
+      return {
+        openFiles: newOpenFiles,
+        fileContents: newContents,
+        dirtyFiles: newDirty,
+        activeFile: newActive,
+        selectedFile: newActive,
+      };
+    });
+  },
+
+  saveFile: async (path: string) => {
+    const { fileContents, dirtyFiles } = get();
+    const content = fileContents[path];
+    if (content === undefined) return;
+
+    try {
+      await fsApi.writeFileText(path, content);
+      const newDirty = new Set(dirtyFiles);
+      newDirty.delete(path);
+      set({ dirtyFiles: newDirty });
+    } catch (e) {
+      console.error('Failed to save file:', path, e);
     }
   },
 }));

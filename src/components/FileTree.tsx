@@ -1,7 +1,6 @@
 import { useEffect, useCallback, ReactNode } from 'react';
 import { useFileStore } from '../store/fileStore';
 import { FileTreeItem } from './FileTreeItem';
-import { fsApi } from '../api/fs';
 import type { FileEntry } from '../types/fs';
 import './FileTree.css';
 
@@ -81,7 +80,7 @@ export function FileTree({ onContextMenu }: FileTreeProps) {
     loading,
     loadRootEntries,
     toggleExpand,
-    selectFile,
+    openFile,
     refreshRoot,
   } = useFileStore();
 
@@ -93,11 +92,9 @@ export function FileTree({ onContextMenu }: FileTreeProps) {
 
   const handleSelect = useCallback(
     (path: string) => {
-      selectFile(path);
-      // 读取文件内容（Sprint 1-3 将把内容交给 Monaco 编辑器）
-      fsApi.readFileText(path).catch(console.error);
+      openFile(path);
     },
-    [selectFile],
+    [openFile],
   );
 
   if (!projectPath) {
