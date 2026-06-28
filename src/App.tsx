@@ -10,6 +10,7 @@ import { EditorTabs } from './components/EditorTabs';
 import { MonacoEditor } from './components/MonacoEditor';
 import { SettingsPage } from './components/SettingsPage';
 import { AboutPage } from './components/AboutPage';
+import { BottomPanel } from './components/BottomPanel';
 import { fsApi } from './api/fs';
 import './styles/global.css';
 
@@ -40,6 +41,7 @@ export default function App() {
   const [view, setView] = useState<'welcome' | 'editor'>('welcome');
   const [showSettings, setShowSettings] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
+  const [panelHeight, setPanelHeight] = useState(160);
 
   useEffect(() => {
     getVersion().then(setVersion).catch(console.error);
@@ -284,6 +286,9 @@ export default function App() {
             )}
           </div>
         </div>
+
+        {/* 底部面板 */}
+        <BottomPanel height={panelHeight} onResize={setPanelHeight} />
 
         {/* 状态栏 */}
         <div className="status-bar">
