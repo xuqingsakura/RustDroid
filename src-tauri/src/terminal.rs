@@ -7,7 +7,7 @@
 
 use serde::Serialize;
 use std::io::{BufRead, BufReader, Write};
-use std::process::{Command, Stdio};
+use std::process::{Child, Command, Stdio};
 use std::sync::mpsc::{self, Sender};
 use std::sync::{Arc, Mutex};
 use tauri::{AppHandle, Emitter, Manager};
@@ -22,12 +22,13 @@ pub struct TerminalOutputPayload {
 /// 终端输入发送器
 type StdinSender = Arc<Mutex<Option<Sender<String>>>>;
 
+/// 终端子进程（用于清理回收）
+type ChildProc = Arc<Mutex<Option<Child>>>;
+
 /// 启动终端 shell
 pub fn start_terminal(app: &AppHandle) -> Result<(), String> {
     // 先停止已有终端
-    if let Some(state) = app.try_state::<StdinSender>() {
-        *state.lock().unwrap() = None;
-    }
+    stop_terminal(app);
 
     let shell = if cfg!(windows) { "cmd.exe" } else { "/bin/bash" };
 
@@ -38,31 +39,37 @@ pub fn start_terminal(app: &AppHandle) -> Result<(), String> {
         .spawn()
         .map_err(|e| format!("failed to spawn shell: {}", e))?;
 
-    let mut stdin = child.stdin.take().ok_or("no stdin")?;
+    let stdin = child.stdin.take().ok_or("no stdin")?;
     let stdout = child.stdout.take().ok_or("no stdout")?;
     let stderr = child.stderr.take().ok_or("no stderr")?;
 
     // 创建输入 channel
     let (tx, rx) = mpsc::channel::<String>();
 
-    // 线程：写 stdin（从 channel 接收数据并写入进程）
+    // 线程：写 stdin（从 channel 接收数据并写入进程 stdin）
     std::thread::spawn(move || {
+        let mut stdin = stdin;
         while let Ok(data) = rx.recv() {
             let _ = stdin.write_all(data.as_bytes());
             let _ = stdin.flush();
         }
+        // channel 关闭 → stdin 也关闭 → 子进程收到 EOF
+        let _ = stdin.flush();
     });
 
-    // 存储发送器到 app state
+    // 存储发送器到 app state（Tauri 确保 manage 只调用一次）
     if app.try_state::<StdinSender>().is_none() {
         app.manage(StdinSender::default());
     }
-    {
-        let state = app.state::<StdinSender>();
-        *state.lock().unwrap() = Some(tx);
-    }
+    *app.state::<StdinSender>().lock().unwrap() = Some(tx);
 
-    // 线程：读 stdout → 推送事件
+    // 存储子进程句柄以便清理
+    if app.try_state::<ChildProc>().is_none() {
+        app.manage(ChildProc::default());
+    }
+    *app.state::<ChildProc>().lock().unwrap() = Some(child);
+
+    // 线程：读 stdout → 推送事件到前端
     {
         let app = app.clone();
         std::thread::spawn(move || {
@@ -71,7 +78,9 @@ pub fn start_terminal(app: &AppHandle) -> Result<(), String> {
                 if let Ok(line) = line {
                     let _ = app.emit(
                         "rustdroid://terminal_output",
-                        &TerminalOutputPayload { data: format!("{}\r\n", line) },
+                        &TerminalOutputPayload {
+                            data: format!("{}\r\n", line),
+                        },
                     );
                 }
             }
@@ -87,25 +96,34 @@ pub fn start_terminal(app: &AppHandle) -> Result<(), String> {
                 if let Ok(line) = line {
                     let _ = app.emit(
                         "rustdroid://terminal_output",
-                        &TerminalOutputPayload { data: format!("\x1b[91m{}\x1b[0m\r\n", line) },
+                        &TerminalOutputPayload {
+                            data: format!("\x1b[91m{}\x1b[0m\r\n", line),
+                        },
                     );
                 }
             }
         });
     }
 
-    // 分离子进程（防止僵尸进程）
-    let _ = child.wait();
-
     tracing::info!("terminal started");
     Ok(())
 }
 
-/// 停止终端
+/// 停止终端：关闭 channel → stdin 关闭 → 子进程退出 → wait 回收
 pub fn stop_terminal(app: &AppHandle) {
+    // 1. 关闭输入 channel（stdin 线程的 rx.recv() 返回 Err，线程退出）
     if let Some(state) = app.try_state::<StdinSender>() {
         *state.lock().unwrap() = None;
     }
+
+    // 2. 杀死并回收子进程
+    if let Some(state) = app.try_state::<ChildProc>() {
+        if let Some(mut child) = state.lock().unwrap().take() {
+            let _ = child.kill();
+            let _ = child.wait(); // 确保回收
+        }
+    }
+
     tracing::info!("terminal stopped");
 }
 
@@ -114,10 +132,9 @@ pub fn stop_terminal(app: &AppHandle) {
 pub fn terminal_write(app: AppHandle, data: String) -> Result<(), String> {
     let state = app.state::<StdinSender>();
     let guard = state.lock().unwrap();
-    if let Some(tx) = guard.as_ref() {
-        tx.send(data).map_err(|e| format!("terminal send error: {}", e))
-    } else {
-        Err("terminal not running".into())
+    match guard.as_ref() {
+        Some(tx) => tx.send(data).map_err(|e| format!("terminal send error: {}", e)),
+        None => Err("terminal not running".into()),
     }
 }
 

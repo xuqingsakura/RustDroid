@@ -16,10 +16,12 @@ use tauri::command;
 fn read_text_file(path: &Path) -> Result<(String, String), IpcError> {
     let bytes = fs::read(path).map_err(|e| IpcError::Io(e.to_string()))?;
 
-    // 尝试 UTF-8
-    if let Ok(text) = String::from_utf8(bytes.clone()) {
+    // 尝试 UTF-8（从切片借用，不 clone）
+    if let Ok(text) = String::from_utf8(bytes) {
         return Ok((text, "utf-8".into()));
     }
+    // 到这里说明 bytes 已 move 失败，重新读取
+    let bytes = fs::read(path).map_err(|e| IpcError::Io(e.to_string()))?;
 
     // 尝试 GBK（Windows 中文常用编码）
     let (text, _, had_errors) = encoding_rs::GBK.decode(&bytes);

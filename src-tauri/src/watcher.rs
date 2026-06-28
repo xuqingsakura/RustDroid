@@ -7,9 +7,11 @@
 
 use notify::{Config, Event, EventKind, RecommendedWatcher, RecursiveMode, Watcher};
 use serde::Serialize;
+use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::mpsc;
 use std::sync::{Arc, Mutex};
+use std::time::Instant;
 use tauri::{AppHandle, Emitter, Manager};
 
 /// 文件变更事件载荷
@@ -40,8 +42,11 @@ pub fn start_watcher(app: &AppHandle, root_path: PathBuf) -> Result<(), String> 
         .watch(&root_path, RecursiveMode::Recursive)
         .map_err(|e| format!("failed to watch directory: {}", e))?;
 
-    // 启动后台线程处理事件
+    // 启动后台线程处理事件（带 300ms 路径去抖）
+    const DEBOUNCE_MS: u64 = 300;
     std::thread::spawn(move || {
+        let mut last_emit: HashMap<String, Instant> = HashMap::new();
+
         while let Ok(Ok(event)) = rx.recv() {
             let kind = match event.kind {
                 EventKind::Create(_) => "created",
@@ -51,13 +56,25 @@ pub fn start_watcher(app: &AppHandle, root_path: PathBuf) -> Result<(), String> 
             };
 
             for path in &event.paths {
-                let _ = app_clone.emit(
-                    "rustdroid://file_changed",
-                    &FileChangePayload {
-                        kind: kind.to_string(),
-                        path: path.to_string_lossy().to_string(),
-                    },
-                );
+                let path_str = path.to_string_lossy().to_string();
+                let now = Instant::now();
+
+                // 同一路径的同类事件在 300ms 内不再重复推送
+                let key = format!("{}:{}", kind, path_str);
+                let should_emit = last_emit.get(&key).map_or(true, |last| {
+                    now.duration_since(*last).as_millis() as u64 >= DEBOUNCE_MS
+                });
+
+                if should_emit {
+                    last_emit.insert(key, now);
+                    let _ = app_clone.emit(
+                        "rustdroid://file_changed",
+                        &FileChangePayload {
+                            kind: kind.to_string(),
+                            path: path_str,
+                        },
+                    );
+                }
             }
         }
     });
