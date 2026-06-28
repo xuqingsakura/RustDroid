@@ -24,6 +24,8 @@ tracing-subscriber = { workspace = true }
 ide-core = { workspace = true }
 ide-ipc = { workspace = true }
 chrono = { version = "0.4", features = ["serde"] }
+notify = "8"
+notify-debouncer-mini = "0.7"
 
 [dev-dependencies]
 tempfile = "3"

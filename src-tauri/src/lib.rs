@@ -42,6 +42,9 @@ pub fn run() {
             project::open_project,
             project::get_recent_projects,
             project::add_recent_project,
+            // Sprint 1-2：文件监听命令
+            watcher::watch_directory,
+            watcher::unwatch_directory,
         ])
         .setup(|app| {
             // 确保 app_data_dir 存在
