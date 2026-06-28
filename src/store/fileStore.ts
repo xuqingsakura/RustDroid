@@ -151,7 +151,7 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
     const { fileContents, openFiles } = get();
 
     // 如果内容已缓存，直接打开
-    if (fileContents[path]) {
+    if (fileContents[path] !== undefined) {
       set((state) => ({
         activeFile: path,
         selectedFile: path,

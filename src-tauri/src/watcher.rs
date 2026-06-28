@@ -29,6 +29,9 @@ type WatcherState = Arc<Mutex<Option<Debouncer>>>;
 
 /// 启动文件监听
 pub fn start_watcher(app: &AppHandle, root_path: PathBuf) -> Result<(), String> {
+    // 先停止已有监听
+    stop_watcher(app);
+
     let app_clone = app.clone();
 
     let mut debouncer = new_debouncer(
@@ -65,7 +68,9 @@ pub fn start_watcher(app: &AppHandle, root_path: PathBuf) -> Result<(), String> 
         .map_err(|e| format!("failed to watch directory: {}", e))?;
 
     // 存储到 app state 以保持 watcher 存活
-    app.manage(WatcherState::default());
+    if app.try_state::<WatcherState>().is_none() {
+        app.manage(WatcherState::default());
+    }
     let state = app.state::<WatcherState>();
     *state.lock().unwrap() = Some(debouncer);
 

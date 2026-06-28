@@ -11,6 +11,7 @@ import { MonacoEditor } from './components/MonacoEditor';
 import { SettingsPage } from './components/SettingsPage';
 import { AboutPage } from './components/AboutPage';
 import { BottomPanel } from './components/BottomPanel';
+import { useSettingsStore } from './store/settingsStore';
 import { fsApi } from './api/fs';
 import './styles/global.css';
 
@@ -45,6 +46,7 @@ export default function App() {
 
   useEffect(() => {
     getVersion().then(setVersion).catch(console.error);
+    useSettingsStore.getState().loadSettings();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Ctrl+, 打开设置
@@ -185,7 +187,9 @@ export default function App() {
   }, [handleOpenProject]);
 
   const toggleTheme = useCallback(() => {
-    setTheme(theme === 'dark' ? 'light' : 'dark');
+    const newTheme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(newTheme);
+    useSettingsStore.getState().updateAppearance({ theme: newTheme });
   }, [theme, setTheme]);
 
   // ===== 欢迎页 =====

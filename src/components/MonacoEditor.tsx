@@ -83,11 +83,13 @@ export function MonacoEditor({
     [onChange],
   );
 
+  const resolvedLanguage = language ?? pathToLanguage(path);
+
   return (
     <div className="editor-wrapper">
       <Editor
         path={path}
-        language={pathToLanguage(path)}
+        language={resolvedLanguage}
         value={value}
         onChange={handleChange}
         onMount={handleMount}

@@ -7,6 +7,7 @@
 mod commands;
 mod fs;
 mod project;
+mod settings;
 mod watcher;
 
 use tracing_subscriber::{fmt, prelude::*, EnvFilter};
@@ -45,6 +46,9 @@ pub fn run() {
             // Sprint 1-2：文件监听命令
             watcher::watch_directory,
             watcher::unwatch_directory,
+            // Sprint 1-4：设置命令
+            settings::get_settings,
+            settings::save_settings,
         ])
         .setup(|app| {
             // 确保 app_data_dir 存在
