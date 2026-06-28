@@ -8,6 +8,8 @@ import { ContextMenu } from './components/ContextMenu';
 import type { ContextMenuItem } from './components/ContextMenu';
 import { EditorTabs } from './components/EditorTabs';
 import { MonacoEditor } from './components/MonacoEditor';
+import { SettingsPage } from './components/SettingsPage';
+import { AboutPage } from './components/AboutPage';
 import { fsApi } from './api/fs';
 import './styles/global.css';
 
@@ -36,10 +38,24 @@ export default function App() {
     items: ContextMenuItem[];
   } | null>(null);
   const [view, setView] = useState<'welcome' | 'editor'>('welcome');
+  const [showSettings, setShowSettings] = useState(false);
+  const [showAbout, setShowAbout] = useState(false);
 
   useEffect(() => {
     getVersion().then(setVersion).catch(console.error);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Ctrl+, 打开设置
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key === ',') {
+        e.preventDefault();
+        setShowSettings(true);
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, []);
 
   // 自动保存：800ms 防抖
   useEffect(() => {
@@ -224,6 +240,13 @@ export default function App() {
           >
             {theme === 'dark' ? '☀️' : '🌙'}
           </button>
+          <button
+            className="activity-btn"
+            title="设置 (Ctrl+,)"
+            onClick={() => setShowSettings(true)}
+          >
+            ⚙
+          </button>
         </div>
 
         {/* 侧边栏 — 文件树 */}
@@ -270,12 +293,13 @@ export default function App() {
               ↻ 自动保存中 ({dirtyFiles.size})
             </span>
           )}
-          <span>{projectPath}</span>
-          {activeFile && (
-            <span>
-              {activeFile.split('\\').pop()?.split('/').pop()}
-            </span>
-          )}
+          <span className="status-path">{projectPath}</span>
+          <span
+            className="status-link"
+            onClick={() => setShowAbout(true)}
+          >
+            关于
+          </span>
         </div>
       </div>
 
@@ -287,6 +311,16 @@ export default function App() {
           items={contextMenu.items}
           onClose={() => setContextMenu(null)}
         />
+      )}
+
+      {/* 设置页 */}
+      {showSettings && (
+        <SettingsPage onClose={() => setShowSettings(false)} />
+      )}
+
+      {/* 关于页 */}
+      {showAbout && (
+        <AboutPage version={version} onClose={() => setShowAbout(false)} />
       )}
     </div>
   );

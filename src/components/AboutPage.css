@@ -1,0 +1,145 @@
+.about-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.about-panel {
+  width: 460px;
+  background: var(--bg2);
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  padding: 2rem;
+  position: relative;
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.about-close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 1.2rem;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.about-close:hover {
+  background: var(--bg3);
+  color: var(--ink);
+}
+
+.about-hero {
+  margin-bottom: 1.5rem;
+}
+
+.about-title {
+  font-size: 2rem;
+  font-weight: 300;
+  color: var(--orange);
+  letter-spacing: -0.03em;
+  margin-bottom: 0.25rem;
+}
+
+.about-version {
+  font-size: 0.85rem;
+  color: var(--accent);
+  font-family: 'JetBrains Mono', monospace;
+  margin-bottom: 0.25rem;
+}
+
+.about-subtitle {
+  font-size: 0.9rem;
+  color: var(--muted2);
+}
+
+.about-info {
+  margin-bottom: 1.5rem;
+}
+
+.about-license {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-bottom: 0.5rem;
+}
+
+.about-links {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+}
+
+.about-links a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.about-links a:hover {
+  text-decoration: underline;
+}
+
+.about-link-sep {
+  color: var(--muted);
+}
+
+.about-tech {
+  margin-bottom: 1.5rem;
+}
+
+.about-tech h3 {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.75rem;
+}
+
+.about-tech-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.about-tech-item {
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem;
+  background: var(--bg);
+  border-radius: 6px;
+}
+
+.about-tech-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.about-tech-version {
+  font-size: 0.72rem;
+  color: var(--accent);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.about-tech-desc {
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.about-footer {
+  font-size: 0.72rem;
+  color: var(--muted);
+}

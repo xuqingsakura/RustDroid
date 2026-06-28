@@ -282,3 +282,19 @@ body {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+.status-path {
+  flex: 1;
+  text-align: center;
+  font-size: 0.7rem;
+}
+
+.status-link {
+  cursor: pointer;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.status-link:hover {
+  color: var(--accent);
+}
