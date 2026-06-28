@@ -1,0 +1,13 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "默认权限：Sprint 1-1 阶段所需的最小权限集",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "core:app:allow-version",
+    "core:app:allow-name",
+    "fs:default",
+    "dialog:default"
+  ]
+}

@@ -1,0 +1,1 @@
+﻿fn main() { match std::process::Command::new("cmd").args(["/C","echo hello"]).output() { Ok(o) => println!("output OK: {}", String::from_utf8_lossy(&o.stdout)), Err(e) => println!("output ERR: {}", e) } }
