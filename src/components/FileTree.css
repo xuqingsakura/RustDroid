@@ -1,0 +1,157 @@
+/* 文件树 */
+.file-tree {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  user-select: none;
+}
+
+.file-tree-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  border-bottom: 1px solid var(--rule);
+}
+
+.file-tree-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-tree-refresh {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 2px 4px;
+  border-radius: 3px;
+}
+
+.file-tree-refresh:hover {
+  background: var(--bg3);
+  color: var(--ink);
+}
+
+.file-tree-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.25rem 0;
+}
+
+.file-tree-empty,
+.file-tree-loading {
+  padding: 1rem;
+  color: var(--muted);
+  text-align: center;
+  font-size: 0.85rem;
+}
+
+/* 文件树项目 */
+.file-tree-item {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.5rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--muted2);
+  white-space: nowrap;
+  transition: background 0.1s;
+}
+
+.file-tree-item:hover {
+  background: var(--bg3);
+}
+
+.file-tree-item.selected {
+  background: rgba(122, 162, 247, 0.15);
+  color: var(--ink);
+}
+
+.file-tree-item-icon {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.chevron {
+  font-size: 0.6rem;
+  transition: transform 0.15s;
+  width: 10px;
+  display: inline-block;
+  color: var(--muted);
+}
+
+.chevron.expanded {
+  transform: rotate(90deg);
+}
+
+.file-icon {
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.file-tree-item-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 右键菜单 */
+.context-menu {
+  position: fixed;
+  z-index: 1000;
+  min-width: 180px;
+  background: var(--bg2);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 0.25rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.context-menu-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.82rem;
+  color: var(--ink);
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.context-menu-item:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+.context-menu-item.disabled {
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.context-menu-item.disabled:hover {
+  background: transparent;
+  color: var(--muted);
+}
+
+.context-menu-divider {
+  height: 1px;
+  background: var(--rule);
+  margin: 0.25rem 0.5rem;
+}
+
+.context-menu-shortcut {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-left: 1.5rem;
+  font-family: 'JetBrains Mono', monospace;
+}
